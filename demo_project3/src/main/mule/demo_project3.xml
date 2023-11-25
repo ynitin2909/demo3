@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="e4b47497-4774-44b7-97a6-f17e26493385" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<db:config name="Database_Config" doc:name="Database Config" doc:id="41550520-c341-492c-83b7-61d6572ef211" >
+		<db:my-sql-connection host="localhost" port="3306" user="root" password="root1234" database="demo_3" />
+	</db:config>
+	<flow name="demo_project3Flow" doc:id="fde69419-d149-4a97-8ac8-a1f3adfd7930" >
+		<http:listener doc:name="Listener" doc:id="894555ab-e9b4-4298-9745-79d3b7fe651c" config-ref="HTTP_Listener_config" path="/demo3"/>
+		<ee:transform doc:name="Transform Message" doc:id="4a871a5f-2b5b-4030-8829-fa94a830c719" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	demo3_col5: payload01.ip_address,
+	demo3_col1: payload01.gender,
+	demo3_col2: payload01.first_name,
+	demo3_col3: payload01.last_name,
+	demo3_col4: payload01.email,
+	idnew_table: payload01.id as String
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<db:bulk-insert doc:name="Bulk insert" doc:id="381dab31-8e68-4789-a35c-e0d1f3954aba" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO `demo_3`.`demo_3`
+(`idnew_table`,
+`demo3_col1`,
+`demo3_col2`,
+`demo3_col3`,
+`demo3_col4`,
+`demo3_col5`)
+VALUES
+(:idnew_table,:demo3_col1,:demo3_col2,:demo3_col3,:demo3_col4,:demo3_col5);]]></db:sql>
+		</db:bulk-insert>
+	</flow>
+</mule>
